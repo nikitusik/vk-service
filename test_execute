@@ -1,0 +1,113 @@
+import requests
+import key_value
+import random
+import json
+import check_bot as cb
+from datetime import datetime
+
+token = key_value.token
+version_api = key_value.version_api
+url = key_value.url
+
+
+def get_all_users(group_id):
+    offset, users = 0, []
+    fields = 'sex, bdate, domain, connections'
+    count_members = requests.get(url + 'groups.getMembers',
+                                 params={'access_token': token,
+                                         'v': version_api,
+                                         'group_id': str(group_id),
+                                         }).json()['response']['count']
+    while offset < count_members:
+        response = requests.get(url + 'groups.getMembers',
+                                params={'access_token': token,
+                                        'v': version_api,
+                                        'group_id': str(group_id),
+                                        'count': 1000,
+                                        'offset': offset,
+                                        'fields': fields
+                                        })
+        data = response.json()['response']['items']
+        users.extend(data)
+        offset += 1000
+    return users
+
+
+def test_get(group_id):
+    user = []
+    offset = 0
+    params = {'access_token': token,
+              'v': version_api,
+              'group_id': group_id
+              }
+    while True:
+        params['offset'] = offset
+        response = json.loads(requests.post(
+            'https://api.vk.com/method/execute.getMembers', params=params).text)
+        if not response['response']:
+            break
+        received_data = response['response']
+        for chunk in received_data:
+            for post in chunk:
+                user.append(post)
+        offset += 1
+    return user
+
+
+# def maximum(a, b):
+#     if len(a) < len(b):
+#         return b
+#     else:
+#         return a
+#
+#
+# def minimum(a, b):
+#     if len(a) > len(b):
+#         return b
+#     else:
+#         return a
+
+
+def duplicate(data):
+    arr = []
+    for i in range(len(data) - 1):
+        if data[i] == data[i + 1]:
+            arr.append(data[i])
+    return arr
+
+
+start_time = datetime.now()
+a = test_get('true_aj')
+end_time = datetime.now()
+print('Time execute group: {}'.format(end_time - start_time))
+with open("test.json", "w", encoding="utf-8") as file:
+    json.dump(a, file, indent=0, ensure_ascii=False)
+print(len(a))
+allusers = []
+test_allusers = []
+start_time = datetime.now()
+users1 = get_all_users('true_aj')
+# with open("data.json", "w", encoding="utf-8") as file:
+#     json.dump(users1, file, indent=0)
+end_time = datetime.now()
+print('Time 1 group: {}'.format(end_time - start_time))
+start_time = datetime.now()
+users2 = get_all_users('true_aj')
+end_time = datetime.now()
+print('Time 2 group: {}'.format(end_time - start_time))
+
+start_time = datetime.now()
+users1.extend(users2)
+random.shuffle(users1)
+usr = []
+for i in users1:
+    usr.append(i['id'])
+usr = duplicate(sorted(usr))
+# for i in minimum(users1, users2):
+#     for j in maximum(users1, users2):
+#         if i['id'] == j['id']:
+#             allusers.append(i['id'])
+#             break
+end_time = datetime.now()
+print('Time duplicate: {}'.format(end_time - start_time))
+print(len(usr))
