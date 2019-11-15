@@ -3,7 +3,7 @@ import time
 import requests
 
 # Получить список всех пользователей данного сообщества
-token = '7422c7857422c7857422c7854f744fe3a4774227422c78529b202d84e8e5d7223c5e291'
+token = '****************************************'
 version_api = 5.101
 group_id = 'fishinghd'
 sort = 'id_asc'
